@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sharknac 🦈</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; color: #004A8D; }
+  h2 { color: #004A8D; }
+  label { font-weight: bold; }
+  .slider-container { margin: 10px 0; }
+  input[type=range] { width: 300px; accent-color: #F7941D; }
+  .valor { font-weight: bold; margin-left: 10px; }
+  #total { font-size: 1.2em; color: #F7941D; font-weight: bold; }
+  #restante { font-size: 1.1em; color: #004A8D; margin-top: 10px; }
+  button { background-color: #004A8D; color: #fff; border: none; padding: 10px 20px; cursor: pointer; font-size: 1em; border-radius: 5px; }
+  button:hover { background-color: #003366; }
+</style>
+</head>
+<body>
+
+<h2>Sharknac 🦈</h2>
+
+<label>Seu grupo:</label>
+<select id="grupo">
+  <option value="G1">G1</option>
+  <option value="G2">G2</option>
+  <option value="G3">G3</option>
+  <option value="G4">G4</option>
+  <option value="G5">G5</option>
+  <option value="G6">G6</option>
+  <option value="G7">G7</option>
+  <option value="G8">G8</option>
+  <option value="G9">G9</option>
+</select>
+
+<h3>Distribua R$100.000</h3>
+<div id="inputs"></div>
+<p>Total: R$ <span id="total">0</span></p>
+<p>Restante: R$ <span id="restante">100.000</span></p>
+
+<button onclick="enviar()">Enviar</button>
+
+<script>
+const grupos = ["G1","G2","G3","G4","G5","G6","G7","G8","G9"];
+const MAX_TOTAL = 100000;
+
+function gerarInputs() {
+  const container = document.getElementById("inputs");
+  const meuGrupo = document.getElementById("grupo").value;
+  container.innerHTML = "";
+
+  grupos.forEach(g => {
+    if (g !== meuGrupo) {
+      container.innerHTML += `
+        <div class="slider-container">
+          ${g}: 
+          <input type="range" min="0" max="${MAX_TOTAL}" value="0" step="1000" id="${g}" oninput="atualizarValor('${g}')">
+          <span class="valor" id="valor-${g}">0</span>
+        </div>
+      `;
+    }
+  });
+  calcularTotal();
+}
+
+function atualizarValor(grupoAtual) {
+  const elAtual = document.getElementById(grupoAtual);
+  const valorAtual = Number(elAtual.value);
+  document.getElementById("valor-" + grupoAtual).innerText = valorAtual.toLocaleString('pt-BR');
+  calcularTotal(grupoAtual);
+}
+
+function calcularTotal(grupoAtual = null) {
+  let total = 0;
+  const sliders = [];
+
+  grupos.forEach(g => {
+    const el = document.getElementById(g);
+    if(el) sliders.push(el);
+  });
+
+  sliders.forEach(slider => total += Number(slider.value));
+  document.getElementById("total").innerText = total.toLocaleString('pt-BR');
+
+  const restante = MAX_TOTAL - total;
+  document.getElementById("restante").innerText = restante.toLocaleString('pt-BR');
+
+  // Ajusta o max de cada slider, exceto o que está sendo mexido
+  sliders.forEach(slider => {
+    if(slider.id !== grupoAtual) {
+      const atual = Number(slider.value);
+      slider.max = atual + restante;
+    }
+  });
+}
+
+document.getElementById("grupo").addEventListener("change", gerarInputs);
+gerarInputs();
+
+function enviar() {
+  let total = 0;
+  let dados = {};
+  const grupo = document.getElementById("grupo").value;
+
+  grupos.forEach(g => {
+    const el = document.getElementById(g);
+    if(el) {
+      const valor = Number(el.value);
+      if(valor < 0) { alert("Não é permitido valores negativos!"); return; }
+      dados[g] = valor;
+      total += valor;
+    }
+  });
+
+  if(total !== MAX_TOTAL) {
+    alert(`O total deve ser exatamente R$${MAX_TOTAL.toLocaleString('pt-BR')}`);
+    return;
+  }
+
+  // FETCH adaptado para JSON, como seu outro projeto que funciona local
+  fetch("https://script.google.com/macros/s/AKfycbwpZs1VqvuZ7gsHzUom-wZMl0bSZnDvcLPc8ibJ7haaijMHqtEa90FYeS0rKOdJGmPJNg/exec", {
+    method: "POST",
+    body: JSON.stringify({ grupo, investimentos: dados })
+  })
+  .then(res => res.json())
+  .then(msg => { 
+    if(msg.status === "sucesso") alert("Enviado com sucesso!"); 
+    else alert("Erro: " + JSON.stringify(msg));
+  })
+  .catch(err => alert("Erro ao enviar: " + err));
+}
+</script>
+
+</body>
+</html>
