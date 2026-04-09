@@ -2,133 +2,247 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Sharknac 🦈</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦈 Sharknac</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; color: #004A8D; }
-  h2 { color: #004A8D; }
-  label { font-weight: bold; }
-  .slider-container { margin: 10px 0; }
-  input[type=range] { width: 300px; accent-color: #F7941D; }
-  .valor { font-weight: bold; margin-left: 10px; }
-  #total { font-size: 1.2em; color: #F7941D; font-weight: bold; }
-  #restante { font-size: 1.1em; color: #004A8D; margin-top: 10px; }
-  button { background-color: #004A8D; color: #fff; border: none; padding: 10px 20px; cursor: pointer; font-size: 1em; border-radius: 5px; }
-  button:hover { background-color: #003366; }
+  /* Box sizing global */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #121212;
+    color: #fff;
+  }
+
+  h1 {
+    text-align: center;
+    color: #F7941D;
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .container {
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #1E1E1E;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+
+  label {
+    display: block;
+    margin: 10px 0 5px;
+    color: #F7941D;
+    word-wrap: break-word;
+  }
+
+  input[type=number], input[type=password], select {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid #004A8D;
+    border-radius: 8px;
+    background-color: #2B2B2B;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  input[type=number]:disabled {
+    background: #333;
+    color: #aaa;
+  }
+
+  button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    background-color: #F7941D;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+
+  button:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+
+  p {
+    margin: 8px 0;
+  }
+
+  .error {
+    color: #FF5555;
+    font-weight: bold;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .invested-info {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #F7941D;
+    word-wrap: break-word;
+  }
 </style>
 </head>
 <body>
 
-<h2>Sharknac 🦈</h2>
+<h1>🦈 Sharknac</h1>
 
-<label>Seu grupo:</label>
-<select id="grupo">
-  <option value="G1">G1</option>
-  <option value="G2">G2</option>
-  <option value="G3">G3</option>
-  <option value="G4">G4</option>
-  <option value="G5">G5</option>
-  <option value="G6">G6</option>
-  <option value="G7">G7</option>
-  <option value="G8">G8</option>
-  <option value="G9">G9</option>
-</select>
+<div class="container">
 
-<h3>Distribua R$100.000</h3>
-<div id="inputs"></div>
-<p>Total: R$ <span id="total">0</span></p>
-<p>Restante: R$ <span id="restante">100.000</span></p>
+  <!-- Login -->
+  <div id="loginSection">
+    <label for="groupPassword">Senha do Grupo:</label>
+    <input type="password" id="groupPassword" placeholder="Digite a senha do grupo">
+    <button id="loginBtn">Entrar</button>
+    <p class="error" id="loginError"></p>
+  </div>
 
-<button onclick="enviar()">Enviar</button>
+  <!-- Main form -->
+  <div id="mainSection" class="hidden">
+    <label>Grupo logado: <span id="groupLabel"></span></label>
+    <p>Você ainda pode investir até: R$<span id="remaining">100.000</span></p>
+
+    <form id="investmentForm">
+      <div id="groupsContainer"></div>
+      <p>Total investido: R$<span id="total">0</span></p>
+      <p class="error" id="errorMsg"></p>
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+</div>
 
 <script>
-const grupos = ["G1","G2","G3","G4","G5","G6","G7","G8","G9"];
-const MAX_TOTAL = 100000;
+const webAppURL = "https://script.google.com/macros/s/AKfycbyRxcSBvQInYNwYt9lK0SdKHPjoefg7tCGbcyTveuknWwMV6UjY2zNv3w9RIOx5p1NhTw/exec"; // substitua
+const maxTotal = 100000;
 
-function gerarInputs() {
-  const container = document.getElementById("inputs");
-  const meuGrupo = document.getElementById("grupo").value;
-  container.innerHTML = "";
+// Senhas dos grupos (substitua pelas reais)
+const groupPasswords = {
+  1: "tambem",
+  2: "dinheiro",
+  3: "arroz",
+  4: "esfignomanometro",
+  5: "cracha",
+  6: "esfiha",
+  7: "passo",
+  8: "galinha",
+  9: "senha9"
+};
 
-  grupos.forEach(g => {
-    if (g !== meuGrupo) {
-      container.innerHTML += `
-        <div class="slider-container">
-          ${g}: 
-          <input type="range" min="0" max="${MAX_TOTAL}" value="0" step="1000" id="${g}" oninput="atualizarValor('${g}')">
-          <span class="valor" id="valor-${g}">0</span>
-        </div>
-      `;
+let ownGroup = null;
+let sent = false;
+
+const loginSection = document.getElementById('loginSection');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('loginError');
+const mainSection = document.getElementById('mainSection');
+const groupLabel = document.getElementById('groupLabel');
+const groupsContainer = document.getElementById('groupsContainer');
+const totalEl = document.getElementById('total');
+const errorMsg = document.getElementById('errorMsg');
+const remainingEl = document.getElementById('remaining');
+
+loginBtn.addEventListener('click', () => {
+  const pass = document.getElementById('groupPassword').value.trim();
+  ownGroup = Object.keys(groupPasswords).find(g => groupPasswords[g] === pass);
+  if(!ownGroup){
+    loginError.textContent = "Senha inválida!";
+    return;
+  }
+  loginSection.classList.add('hidden');
+  mainSection.classList.remove('hidden');
+  groupLabel.textContent = ownGroup;
+  createInputs();
+});
+
+function createInputs() {
+  groupsContainer.innerHTML = '';
+  for(let i=1;i<=9;i++){
+    if(i != ownGroup){
+      const label = document.createElement('label');
+      label.textContent = `Grupo ${i}: R$ `;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = 0;
+      input.id = `group${i}`;
+      input.addEventListener('input', updateTotal);
+      groupsContainer.appendChild(label);
+      groupsContainer.appendChild(input);
+
+      const investedInfo = document.createElement('div');
+      investedInfo.id = `invested${i}`;
+      investedInfo.classList.add('invested-info');
+      investedInfo.textContent = 'Já investido: R$0';
+      groupsContainer.appendChild(investedInfo);
     }
-  });
-  calcularTotal();
+  }
+  updateTotal();
 }
 
-function atualizarValor(grupoAtual) {
-  const elAtual = document.getElementById(grupoAtual);
-  const valorAtual = Number(elAtual.value);
-  document.getElementById("valor-" + grupoAtual).innerText = valorAtual.toLocaleString('pt-BR');
-  calcularTotal(grupoAtual);
+function updateTotal() {
+  let sum = 0;
+  for(let i=1;i<=9;i++){
+    if(i != ownGroup){
+      const val = Number(document.getElementById(`group${i}`).value || 0);
+      sum += val;
+      document.getElementById(`invested${i}`).textContent = `Já investido: R$${val.toLocaleString('pt-BR')}`;
+    }
+  }
+  totalEl.textContent = sum.toLocaleString('pt-BR');
+  remainingEl.textContent = (maxTotal - sum).toLocaleString('pt-BR');
+  errorMsg.textContent = sum > maxTotal ? "O total não pode exceder R$100.000" : "";
 }
 
-function calcularTotal(grupoAtual = null) {
-  let total = 0;
-  const sliders = [];
+document.getElementById('investmentForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if(sent) return;
 
-  grupos.forEach(g => {
-    const el = document.getElementById(g);
-    if(el) sliders.push(el);
-  });
-
-  sliders.forEach(slider => total += Number(slider.value));
-  document.getElementById("total").innerText = total.toLocaleString('pt-BR');
-
-  const restante = MAX_TOTAL - total;
-  document.getElementById("restante").innerText = restante.toLocaleString('pt-BR');
-
-  // Ajusta o max de cada slider, exceto o que está sendo mexido
-  sliders.forEach(slider => {
-    if(slider.id !== grupoAtual) {
-      const atual = Number(slider.value);
-      slider.max = atual + restante;
+  let sum = 0;
+  const data = { ownGroup: Number(ownGroup) };
+  for(let i=1;i<=9;i++){
+    if(i != ownGroup){
+      const val = Number(document.getElementById(`group${i}`).value);
+      data[`group${i}`] = val;
+      sum += val;
     }
-  });
-}
+  }
 
-document.getElementById("grupo").addEventListener("change", gerarInputs);
-gerarInputs();
-
-function enviar() {
-  let total = 0;
-  let dados = {};
-  const grupo = document.getElementById("grupo").value;
-
-  grupos.forEach(g => {
-    const el = document.getElementById(g);
-    if(el) {
-      const valor = Number(el.value);
-      if(valor < 0) { alert("Não é permitido valores negativos!"); return; }
-      dados[g] = valor;
-      total += valor;
-    }
-  });
-
-  if(total !== MAX_TOTAL) {
-    alert(`O total deve ser exatamente R$${MAX_TOTAL.toLocaleString('pt-BR')}`);
+  if(sum > maxTotal){
+    errorMsg.textContent = "O total não pode exceder R$100.000";
     return;
   }
 
-  // FETCH adaptado para JSON, como seu outro projeto que funciona local
-  fetch("https://script.google.com/macros/s/AKfycbwpZs1VqvuZ7gsHzUom-wZMl0bSZnDvcLPc8ibJ7haaijMHqtEa90FYeS0rKOdJGmPJNg/exec", {
-    method: "POST",
-    body: JSON.stringify({ grupo, investimentos: dados })
-  })
-  .then(res => res.json())
-  .then(msg => { 
-    if(msg.status === "sucesso") alert("Enviado com sucesso!"); 
-    else alert("Erro: " + JSON.stringify(msg));
-  })
-  .catch(err => alert("Erro ao enviar: " + err));
-}
+  try {
+    const resp = await fetch(webAppURL,{
+      method: "POST",
+      body: JSON.stringify(data)
+    });
+    const result = await resp.json();
+    if(result.status === "ok"){
+      alert("Investimentos enviados com sucesso!");
+      sent = true;
+      document.querySelectorAll('#investmentForm input').forEach(inp => inp.disabled = true);
+      document.querySelector('#investmentForm button').disabled = true;
+    } else {
+      alert("Erro: " + result.message);
+    }
+  } catch(err){
+    alert("Falha ao enviar: " + err.message);
+  }
+});
 </script>
 
 </body>
