@@ -62,6 +62,7 @@ input {
   border: 2px solid #004A8D;
   border-radius: 8px;
   color: white;
+  font-size: 16px; /* 👈 CRÍTICO pro iPhone */
 }
 
 button {
@@ -176,9 +177,13 @@ function createInputs(){
   for(let i=1;i<=8;i++){
     if(i != ownGroup){
 
+      // LABEL FIXO
+      const label = document.createElement('label');
+      label.textContent = `Grupo ${i}`;
+
       const input = document.createElement('input');
       input.type = 'number';
-      input.placeholder = `Grupo ${i}`;
+      input.placeholder = "Digite o valor";
       input.id = `group${i}`;
       input.oninput = updateTotal;
 
@@ -196,6 +201,7 @@ function createInputs(){
         quick.appendChild(btn);
       });
 
+      container.appendChild(label);
       container.appendChild(input);
       container.appendChild(quick);
     }
