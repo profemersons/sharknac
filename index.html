@@ -1,71 +1,267 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador de Centro de Distribuição</title>
+<title>🦈 Sharknac</title>
+
 <style>
-  body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: Arial, sans-serif;
-  }
+* { box-sizing: border-box; }
 
-  .splash {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    background: linear-gradient(135deg, #004A8D 0%, #F7941D 100%);
-    color: white;
-    text-align: center;
-    padding: 20px;
-  }
+body {
+  font-family: Arial;
+  background: #121212;
+  color: #fff;
+  padding: 15px;
+}
 
-  .splash h1 {
-    font-size: 2.5em;
-    margin: 0 0 20px 0;
-  }
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-  .splash p {
-    font-size: 1em;
-    margin: 0 0 40px 0;
-    opacity: 0.9;
-  }
+.header h1 {
+  color: #F7941D;
+}
 
-  .splash button {
-    background: white;
-    color: #004A8D;
-    border: none;
-    padding: 15px 30px;
-    font-size: 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
-  }
+.group-indicator {
+  font-size: 0.9rem;
+  color: #aaa;
+}
 
-  .splash button:hover {
-    background: #F7941D;
-    color: white;
-  }
+.progress-container {
+  margin: 10px 0 20px;
+}
+
+.progress {
+  height: 10px;
+  background: #333;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #F7941D;
+  width: 0%;
+}
+
+.container {
+  max-width: 480px;
+  margin: auto;
+  background: #1E1E1E;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #2B2B2B;
+  border: 2px solid #004A8D;
+  border-radius: 8px;
+  color: white;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: #F7941D;
+  border: none;
+  border-radius: 8px;
+  color: white;
+}
+
+button:disabled { background: #555; }
+
+.quick-buttons {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.quick-buttons button {
+  flex: 1;
+  padding: 6px;
+  font-size: 0.8rem;
+}
+
+.hidden { display: none; }
+.error { color: #ff5555; }
 </style>
 </head>
+
 <body>
 
-<div class="splash">
-  <h1>Simulador de Centro de Distribuição</h1>
-  <p>Feito com carinho e exclusividade para ADM5 🤍</p>
-  <button onclick="iniciarSimulador()">Iniciar Simulador</button>
+<div class="header">
+  <h1>🦈 Sharknac</h1>
+  <div id="groupIndicator">Não logado</div>
+</div>
+
+<div class="progress-container hidden" id="progressSection">
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <p>Restante: R$ <b id="remaining">100.000</b></p>
+</div>
+
+<div class="container">
+
+<div id="loginSection">
+  <input type="password" id="groupPassword" placeholder="Senha do grupo">
+  <button id="loginBtn">Entrar</button>
+  <p class="error" id="loginError"></p>
+</div>
+
+<div id="mainSection" class="hidden">
+  <form id="investmentForm">
+    <div id="groupsContainer"></div>
+
+    <p>Total: R$ <span id="total">0</span></p>
+    <p class="error" id="errorMsg"></p>
+
+    <button type="submit" id="submitBtn">Enviar</button>
+  </form>
+</div>
+
 </div>
 
 <script>
-  function iniciarSimulador() {
-    // Redireciona para o simulador
-    window.location.href = "simulador.html";
+const maxTotal = 100000;
+const webAppURL = "https://script.google.com/macros/s/AKfycbyRxcSBvQInYNwYt9lK0SdKHPjoefg7tCGbcyTveuknWwMV6UjY2zNv3w9RIOx5p1NhTw/exec";
+
+const groupPasswords = {
+  1:"tambem",
+  2:"dinheiro",
+  3:"arroz",
+  4:"esfignomanometro",
+  5:"cracha",
+  6:"esfiha",
+  7:"passo",
+  8:"galinha"
+};
+
+let ownGroup = null;
+let sending = false;
+
+const totalEl = document.getElementById('total');
+const remainingEl = document.getElementById('remaining');
+const progressBar = document.getElementById('progressBar');
+const errorMsg = document.getElementById('errorMsg');
+const submitBtn = document.getElementById('submitBtn');
+
+document.getElementById('loginBtn').onclick = () => {
+  const pass = document.getElementById('groupPassword').value.trim();
+  ownGroup = Object.keys(groupPasswords).find(g => groupPasswords[g] === pass);
+
+  if(!ownGroup){
+    document.getElementById('loginError').textContent = "Senha inválida";
+    return;
   }
+
+  document.getElementById('groupIndicator').textContent = "Grupo " + ownGroup;
+
+  document.getElementById('loginSection').classList.add('hidden');
+  document.getElementById('mainSection').classList.remove('hidden');
+  document.getElementById('progressSection').classList.remove('hidden');
+
+  createInputs();
+};
+
+function createInputs(){
+  const container = document.getElementById('groupsContainer');
+  container.innerHTML = '';
+
+  for(let i=1;i<=8;i++){
+    if(i != ownGroup){
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.placeholder = `Grupo ${i}`;
+      input.id = `group${i}`;
+      input.oninput = updateTotal;
+
+      const quick = document.createElement('div');
+      quick.className = 'quick-buttons';
+
+      [1000,5000,10000].forEach(v=>{
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = `+${v/1000}k`;
+        btn.onclick = ()=>{
+          input.value = Number(input.value||0) + v;
+          updateTotal();
+        };
+        quick.appendChild(btn);
+      });
+
+      container.appendChild(input);
+      container.appendChild(quick);
+    }
+  }
+}
+
+function updateTotal(){
+  let sum = 0;
+
+  for(let i=1;i<=8;i++){
+    if(i != ownGroup){
+      sum += Number(document.getElementById(`group${i}`).value || 0);
+    }
+  }
+
+  const remaining = maxTotal - sum;
+
+  totalEl.textContent = sum.toLocaleString('pt-BR');
+  remainingEl.textContent = remaining.toLocaleString('pt-BR');
+
+  const percent = Math.min(100, (sum / maxTotal) * 100);
+  progressBar.style.width = percent + "%";
+  progressBar.style.background = sum > maxTotal ? "#ff4444" : "#F7941D";
+
+  submitBtn.disabled = sum > maxTotal;
+  errorMsg.textContent = sum > maxTotal ? "Excedeu R$100.000" : "";
+
+  document.querySelectorAll("input[type=number]").forEach(inp=>{
+    inp.max = remaining + Number(inp.value || 0);
+  });
+}
+
+document.getElementById('investmentForm').onsubmit = async e=>{
+  e.preventDefault();
+
+  if(sending) return;
+
+  sending = true;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Enviando...";
+
+  let data = { ownGroup:Number(ownGroup) };
+
+  for(let i=1;i<=8;i++){
+    if(i != ownGroup){
+      data[`group${i}`] = Number(document.getElementById(`group${i}`).value);
+    }
+  }
+
+  try {
+    await fetch(webAppURL,{
+      method:"POST",
+      body:JSON.stringify(data)
+    });
+
+    // 🔒 TRAVA DEFINITIVA NA SESSÃO
+    submitBtn.textContent = "Enviado ✔";
+    document.querySelectorAll("input").forEach(i=>i.disabled = true);
+
+  } catch(err){
+    alert("Erro ao enviar");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Enviar";
+    sending = false;
+  }
+};
 </script>
 
 </body>
