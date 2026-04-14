@@ -1,248 +1,71 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🦈 Sharknac</title>
+<title>Simulador de Centro de Distribuição</title>
 <style>
-  /* Box sizing global */
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: 'Arial', sans-serif;
+  body, html {
     margin: 0;
-    padding: 20px;
-    background-color: #121212;
-    color: #fff;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
   }
 
-  h1 {
+  .splash {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background: linear-gradient(135deg, #004A8D 0%, #F7941D 100%);
+    color: white;
     text-align: center;
-    color: #F7941D;
-    font-size: 2rem;
-    margin-bottom: 20px;
-  }
-
-  .container {
-    max-width: 480px;
-    width: 100%;
-    margin: 0 auto;
-    background-color: #1E1E1E;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
 
-  label {
-    display: block;
-    margin: 10px 0 5px;
-    color: #F7941D;
-    word-wrap: break-word;
+  .splash h1 {
+    font-size: 2.5em;
+    margin: 0 0 20px 0;
   }
 
-  input[type=number], input[type=password], select {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    border: 2px solid #004A8D;
-    border-radius: 8px;
-    background-color: #2B2B2B;
-    color: #fff;
-    margin-bottom: 10px;
+  .splash p {
+    font-size: 1em;
+    margin: 0 0 40px 0;
+    opacity: 0.9;
   }
 
-  input[type=number]:disabled {
-    background: #333;
-    color: #aaa;
-  }
-
-  button {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.1rem;
-    background-color: #F7941D;
-    color: #fff;
+  .splash button {
+    background: white;
+    color: #004A8D;
     border: none;
+    padding: 15px 30px;
+    font-size: 1.2em;
     border-radius: 8px;
     cursor: pointer;
-    margin-top: 20px;
-  }
-
-  button:disabled {
-    background: #555;
-    cursor: not-allowed;
-  }
-
-  p {
-    margin: 8px 0;
-  }
-
-  .error {
-    color: #FF5555;
     font-weight: bold;
+    transition: 0.3s;
   }
 
-  .hidden {
-    display: none;
-  }
-
-  .invested-info {
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: #F7941D;
-    word-wrap: break-word;
+  .splash button:hover {
+    background: #F7941D;
+    color: white;
   }
 </style>
 </head>
 <body>
 
-<h1>🦈 Sharknac</h1>
-
-<div class="container">
-
-  <!-- Login -->
-  <div id="loginSection">
-    <label for="groupPassword">Senha do Grupo:</label>
-    <input type="password" id="groupPassword" placeholder="Digite a senha do grupo">
-    <button id="loginBtn">Entrar</button>
-    <p class="error" id="loginError"></p>
-  </div>
-
-  <!-- Main form -->
-  <div id="mainSection" class="hidden">
-    <label>Grupo logado: <span id="groupLabel"></span></label>
-    <p>Você ainda pode investir até: R$<span id="remaining">100.000</span></p>
-
-    <form id="investmentForm">
-      <div id="groupsContainer"></div>
-      <p>Total investido: R$<span id="total">0</span></p>
-      <p class="error" id="errorMsg"></p>
-      <button type="submit">Enviar</button>
-    </form>
-  </div>
+<div class="splash">
+  <h1>Simulador de Centro de Distribuição</h1>
+  <p>Feito com carinho e exclusividade para ADM5 🤍</p>
+  <button onclick="iniciarSimulador()">Iniciar Simulador</button>
 </div>
 
 <script>
-const webAppURL = "https://script.google.com/macros/s/AKfycbyRxcSBvQInYNwYt9lK0SdKHPjoefg7tCGbcyTveuknWwMV6UjY2zNv3w9RIOx5p1NhTw/exec"; // substitua
-const maxTotal = 100000;
-
-// Senhas dos grupos (substitua pelas reais)
-const groupPasswords = {
-  1: "tambem",
-  2: "dinheiro",
-  3: "arroz",
-  4: "esfignomanometro",
-  5: "cracha",
-  6: "esfiha",
-  7: "passo",
-  8: "galinha",
-  9: "senha9"
-};
-
-let ownGroup = null;
-let sent = false;
-
-const loginSection = document.getElementById('loginSection');
-const loginBtn = document.getElementById('loginBtn');
-const loginError = document.getElementById('loginError');
-const mainSection = document.getElementById('mainSection');
-const groupLabel = document.getElementById('groupLabel');
-const groupsContainer = document.getElementById('groupsContainer');
-const totalEl = document.getElementById('total');
-const errorMsg = document.getElementById('errorMsg');
-const remainingEl = document.getElementById('remaining');
-
-loginBtn.addEventListener('click', () => {
-  const pass = document.getElementById('groupPassword').value.trim();
-  ownGroup = Object.keys(groupPasswords).find(g => groupPasswords[g] === pass);
-  if(!ownGroup){
-    loginError.textContent = "Senha inválida!";
-    return;
+  function iniciarSimulador() {
+    // Redireciona para o simulador
+    window.location.href = "simulador.html";
   }
-  loginSection.classList.add('hidden');
-  mainSection.classList.remove('hidden');
-  groupLabel.textContent = ownGroup;
-  createInputs();
-});
-
-function createInputs() {
-  groupsContainer.innerHTML = '';
-  for(let i=1;i<=9;i++){
-    if(i != ownGroup){
-      const label = document.createElement('label');
-      label.textContent = `Grupo ${i}: R$ `;
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = 0;
-      input.value = 0;
-      input.id = `group${i}`;
-      input.addEventListener('input', updateTotal);
-      groupsContainer.appendChild(label);
-      groupsContainer.appendChild(input);
-
-      const investedInfo = document.createElement('div');
-      investedInfo.id = `invested${i}`;
-      investedInfo.classList.add('invested-info');
-      investedInfo.textContent = 'Já investido: R$0';
-      groupsContainer.appendChild(investedInfo);
-    }
-  }
-  updateTotal();
-}
-
-function updateTotal() {
-  let sum = 0;
-  for(let i=1;i<=9;i++){
-    if(i != ownGroup){
-      const val = Number(document.getElementById(`group${i}`).value || 0);
-      sum += val;
-      document.getElementById(`invested${i}`).textContent = `Já investido: R$${val.toLocaleString('pt-BR')}`;
-    }
-  }
-  totalEl.textContent = sum.toLocaleString('pt-BR');
-  remainingEl.textContent = (maxTotal - sum).toLocaleString('pt-BR');
-  errorMsg.textContent = sum > maxTotal ? "O total não pode exceder R$100.000" : "";
-}
-
-document.getElementById('investmentForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  if(sent) return;
-
-  let sum = 0;
-  const data = { ownGroup: Number(ownGroup) };
-  for(let i=1;i<=9;i++){
-    if(i != ownGroup){
-      const val = Number(document.getElementById(`group${i}`).value);
-      data[`group${i}`] = val;
-      sum += val;
-    }
-  }
-
-  if(sum > maxTotal){
-    errorMsg.textContent = "O total não pode exceder R$100.000";
-    return;
-  }
-
-  try {
-    const resp = await fetch(webAppURL,{
-      method: "POST",
-      body: JSON.stringify(data)
-    });
-    const result = await resp.json();
-    if(result.status === "ok"){
-      alert("Investimentos enviados com sucesso!");
-      sent = true;
-      document.querySelectorAll('#investmentForm input').forEach(inp => inp.disabled = true);
-      document.querySelector('#investmentForm button').disabled = true;
-    } else {
-      alert("Erro: " + result.message);
-    }
-  } catch(err){
-    alert("Falha ao enviar: " + err.message);
-  }
-});
 </script>
 
 </body>
